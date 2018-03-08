@@ -1,0 +1,17 @@
+%YAML:1.0
+
+# Camera calibration parameters 
+Camera.fx: 194.884666947553
+Camera.fy: 194.884666947553
+Camera.cx: 172.160809356797
+Camera.cy: 125.085931934453
+
+# Camera distortion paremeters (Mei Model) --
+Camera.k1: -0.337533296189144
+Camera.k2: 0.139167006118706
+Camera.p1: 0.000393444838786334
+Camera.p2: 0
+
+# 360 omnidirectional camera bounds (donut image)
+Image.width: 320
+Image.height: 240
