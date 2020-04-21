@@ -1,6 +1,10 @@
-#include<iostream>
+#include <iostream>
 #include <string>
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+#include <vector>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -13,6 +17,8 @@ cv::Mat cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 cv::Mat distCoeffs = cv::Mat::zeros(4, 1, CV_64F);
 cv::Matx33d K2;
 cv::Mat new_intrinsic_mat;
+string infile_path;
+string outfile_path;
 
 void loadImageFromFile(const std::string file_name)
 {
@@ -63,18 +69,56 @@ void loadSettings()
     cameraMatrix.copyTo(new_intrinsic_mat);
     new_intrinsic_mat.at<double>(0, 0) *= 1;
     new_intrinsic_mat.at<double>(1, 1) *= 1;
-    new_intrinsic_mat.at<double>(0, 2) = 0.5 * width;
-    new_intrinsic_mat.at<double>(1, 2) = 0.5 * height;
+    new_intrinsic_mat.at<double>(0, 2) = cx;
+    new_intrinsic_mat.at<double>(1, 2) = cy;
 }
+
+/*function... might want it in some class?*/
+int getdir (string dir, vector<string> &files)
+{
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(dir.c_str())) == NULL) {
+        cout << "Error(" << errno << ") opening " << dir << endl;
+        return errno;
+    }
+
+    while ((dirp = readdir(dp)) != NULL) {
+        files.push_back(string(dirp->d_name));
+    }
+    closedir(dp);
+    return 0;
+}
+
 
 int main(int argc, char **argv)
 {
+    infile_path = argv[1];
+    outfile_path = argv[2];
+    vector<string> files = vector<string>();
+
+    getdir(infile_path, files);
+
     loadSettings();
-    cv::Mat image = cv::imread(argv[1]);
-    // cv::imshow("ori",image);
-    cv::Mat undisImag = undistortCameraImage(image);
-    // cv::imshow("after",undisImag);
-    cv::imwrite(argv[2],undisImag);
-    // cv::waitKey(0);
+
+    // for (int i = 0; i < files.size(); ++i)
+    // {
+    //     std::cout << files[i] << std::endl;
+    // }
+    
+    // std::cout << argv[2] << std::endl;
+    for (unsigned int i = 2;i < files.size();i++) {
+        cv::Mat image = cv::imread(infile_path+"/"+files[i]);
+    //     cv::imshow("ori",image);
+    // cv::waitKey(-1);
+        cv::Mat undisImag = undistortCameraImage(image);
+        // cv::imshow("after",undisImag);
+        // cv::waitKey(1);
+
+        cv::imwrite(outfile_path+"/"+files[i], undisImag);
+        // cv::waitKey(0);
+    
+        cout << files[i] << endl;
+    }
     return 0;
 }
